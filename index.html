@@ -1190,6 +1190,87 @@
             } catch (e) { return dateStr; }
         }
 
+        // --- Auth Global Functions (Robustness) ---
+        let pendingMission = null;
+        let currentAuthMode = 'login';
+
+        window.openAuthModal = function(mode = 'login', dest = null, mid = null) {
+            console.log(`[AUTH] Opening modal: mode=${mode}, dest=${dest}`);
+            try {
+                pendingMission = { dest, mid };
+                currentAuthMode = mode;
+                
+                // Ensure switch tab runs
+                window.switchAuthTab(mode);
+                
+                const modal = document.querySelector('#auth-modal');
+                if (!modal) {
+                    console.error('[AUTH] Modal element #auth-modal not found!');
+                    return;
+                }
+                
+                modal.style.display = 'flex';
+                
+                // Safety check for GSAP
+                if (window.gsap) {
+                    gsap.from('#auth-modal .modal-content', { y: 20, opacity: 0, duration: 0.4, ease: "power4.out" });
+                }
+            } catch (e) {
+                console.error('[AUTH] Error opening modal:', e);
+            }
+        };
+
+        window.closeAuthModal = function() {
+            try {
+                const modal = document.querySelector('#auth-modal');
+                if (!modal) return;
+
+                if (window.gsap) {
+                    gsap.to('#auth-modal .modal-content', {
+                        y: 20, opacity: 0, duration: 0.3, onComplete: () => {
+                            modal.style.display = 'none';
+                        }
+                    });
+                } else {
+                    modal.style.display = 'none';
+                }
+            } catch (e) {
+                document.querySelector('#auth-modal').style.display = 'none';
+            }
+        };
+
+        window.switchAuthTab = function(mode) {
+            try {
+                currentAuthMode = mode;
+                const loginTab = document.querySelector('#tab-login');
+                const signupTab = document.querySelector('#tab-signup');
+                const submitBtn = document.querySelector('#auth-submit-btn');
+                const signupFields = document.querySelector('#signup-fields');
+
+                if (mode === 'login') {
+                    if (loginTab) loginTab.classList.add('active');
+                    if (signupTab) signupTab.classList.remove('active');
+                    if (submitBtn) submitBtn.textContent = 'Login & Continue';
+                    if (signupFields) signupFields.style.display = 'none';
+                    const fn = document.querySelector('#auth-full-name');
+                    const un = document.querySelector('#auth-username');
+                    if (fn) fn.required = false;
+                    if (un) un.required = false;
+                } else {
+                    if (signupTab) signupTab.classList.add('active');
+                    if (loginTab) loginTab.classList.remove('active');
+                    if (submitBtn) submitBtn.textContent = 'Create Account';
+                    if (signupFields) signupFields.style.display = 'block';
+                    const fn = document.querySelector('#auth-full-name');
+                    const un = document.querySelector('#auth-username');
+                    if (fn) fn.required = true;
+                    if (un) un.required = true;
+                }
+            } catch (e) {
+                console.error('[AUTH] Error switching tab:', e);
+            }
+        };
+
         async function fetchMissions() {
             try {
                 console.log('Fetching missions directly from Supabase...');
@@ -1577,49 +1658,6 @@
             if (error) alert(error.message);
         }
 
-        let pendingMission = null;
-        let currentAuthMode = 'login';
-
-        function openAuthModal(mode = 'login', dest = null, mid = null) {
-            pendingMission = { dest, mid };
-            currentAuthMode = mode;
-            switchAuthTab(mode);
-            document.querySelector('#auth-modal').style.display = 'flex';
-            gsap.from('#auth-modal .modal-content', { y: 20, opacity: 0, duration: 0.4, ease: "power4.out" });
-        }
-
-        function closeAuthModal() {
-            const modal = document.querySelector('#auth-modal');
-            gsap.to('#auth-modal .modal-content', {
-                y: 20, opacity: 0, duration: 0.3, onComplete: () => {
-                    modal.style.display = 'none';
-                }
-            });
-        }
-
-        function switchAuthTab(mode) {
-            currentAuthMode = mode;
-            const loginTab = document.querySelector('#tab-login');
-            const signupTab = document.querySelector('#tab-signup');
-            const submitBtn = document.querySelector('#auth-submit-btn');
-            const signupFields = document.querySelector('#signup-fields');
-
-            if (mode === 'login') {
-                loginTab.classList.add('active');
-                signupTab.classList.remove('active');
-                submitBtn.textContent = 'Login & Continue';
-                signupFields.style.display = 'none';
-                document.querySelector('#auth-full-name').required = false;
-                document.querySelector('#auth-username').required = false;
-            } else {
-                signupTab.classList.add('active');
-                loginTab.classList.remove('active');
-                submitBtn.textContent = 'Create Account';
-                signupFields.style.display = 'block';
-                document.querySelector('#auth-full-name').required = true;
-                document.querySelector('#auth-username').required = true;
-            }
-        }
 
         document.querySelector('#auth-form').addEventListener('submit', async (e) => {
             e.preventDefault();
