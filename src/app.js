@@ -45,9 +45,18 @@ app.use('/api/admin', adminRoutes);
 // Static files (from root directory where index.html is)
 app.use(express.static(path.join(__dirname, '..')));
 
-// Health Check
+// Health Check with Diagnostics
 app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
+  res.status(200).json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    env: process.env.NODE_ENV || 'production',
+    diagnostics: {
+      supabase_url_set: !!process.env.SUPABASE_URL,
+      supabase_key_set: !!process.env.SUPABASE_ANON_KEY,
+      allowed_origins: process.env.ALLOWED_ORIGINS || '*'
+    }
+  });
 });
 
 // Catch-all for SPA: serve index.html for any non-API route
