@@ -861,9 +861,9 @@
             <a href="#booking" class="nav-link">Book Now</a>
         </div>
         <div class="nav-right">
-            <a href="javascript:void(0)" class="btn btn-secondary" onclick="openAuthModal('login')"
+            <a href="javascript:void(0)" class="btn btn-secondary" data-auth="login"
                 style="padding: 10px 24px;">Login</a>
-            <a href="javascript:void(0)" class="btn btn-primary" onclick="openAuthModal('signup')"
+            <a href="javascript:void(0)" class="btn btn-primary" data-auth="signup"
                 style="padding: 10px 24px;">Sign Up</a>
         </div>
         <div class="hamburger" id="hamburger-btn" onclick="openMobileDrawer()"><i class="fas fa-bars"></i></div>
@@ -1271,6 +1271,25 @@
             }
         };
 
+        // --- Event Delegation for Auth ---
+        document.addEventListener('click', (e) => {
+            const authBtn = e.target.closest('[data-auth]');
+            if (authBtn) {
+                const mode = authBtn.getAttribute('data-auth');
+                if (mode === 'login' || mode === 'signup') {
+                    e.preventDefault();
+                    window.openAuthModal(mode);
+                }
+            }
+
+            // Also handle logout via delegation
+            const logoutBtn = e.target.closest('[data-logout]');
+            if (logoutBtn) {
+                e.preventDefault();
+                window.handleLogout();
+            }
+        });
+
         async function fetchMissions() {
             try {
                 console.log('Fetching missions directly from Supabase...');
@@ -1490,8 +1509,8 @@
                         `;
                     } else {
                         authRight.innerHTML = `
-                            <a href="javascript:void(0)" class="btn btn-secondary" onclick="openAuthModal('login')" style="padding: 10px 24px;">Login</a>
-                            <a href="javascript:void(0)" class="btn btn-primary" onclick="openAuthModal('signup')" style="padding: 10px 24px;">Sign Up</a>
+                            <a href="javascript:void(0)" class="btn btn-secondary" data-auth="login" style="padding: 10px 24px;">Login</a>
+                            <a href="javascript:void(0)" class="btn btn-primary" data-auth="signup" style="padding: 10px 24px;">Sign Up</a>
                         `;
                     }
                 }
@@ -1637,10 +1656,10 @@
 
                     <p class="drawer-section-label">Account</p>
                     <div class="drawer-auth-btns">
-                        <button class="btn btn-secondary" onclick="closeMobileDrawer(); openAuthModal('login')">
+                        <button class="btn btn-secondary" data-auth="login">
                             <i class="fas fa-right-to-bracket" style="margin-right:8px;"></i>Login
                         </button>
-                        <button class="btn btn-primary" onclick="closeMobileDrawer(); openAuthModal('signup')">
+                        <button class="btn btn-primary" data-auth="signup">
                             <i class="fas fa-user-astronaut" style="margin-right:8px;"></i>Sign Up
                         </button>
                     </div>
