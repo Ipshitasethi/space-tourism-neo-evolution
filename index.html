@@ -210,7 +210,7 @@
         }
 
         .hamburger {
-            display: flex;
+            display: none;
             align-items: center;
             justify-content: center;
             width: 44px;
@@ -857,6 +857,12 @@
             .dest-grid, .pricing-grid { grid-template-columns: 1fr; }
             .form-row { grid-template-columns: 1fr; gap: 0; }
             .section-header h2 { font-size: 32px; }
+        }
+
+        /* Show the main hamburger icon on desktop as well */
+        @media (min-width: 992px) {
+            .nav-right { display: none; }
+            .hamburger { display: flex; }
         }
     </style>
 </head>
