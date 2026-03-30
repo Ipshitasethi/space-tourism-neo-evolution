@@ -212,7 +212,10 @@
         .hamburger {
             display: none;
             cursor: pointer;
-            font-size: 20px;
+            font-size: 24px;
+            z-index: 3000;
+            padding: 10px;
+            color: var(--text-primary);
         }
 
         /* --- Hero Section --- */
@@ -828,7 +831,7 @@
         .drawer-logout i { color: #F87171 !important; }
         .drawer-logout:hover { background: rgba(248,113,113,0.08) !important; }
 
-        @media (max-width: 767px) {
+        @media (max-width: 1100px) {
             .nav-center { display: none; }
             .nav-right { display: none; }
             .hamburger { display: block; }
@@ -1171,7 +1174,104 @@
     <!-- JS Logic -->
     <script>
         // --- Supabase Config (Dynamic) ---
-        let supabaseClient = null;
+        // --- NAVIGATION & DRAWER ENGINE ---
+        window.openMobileDrawer = function() {
+            try {
+                window.renderDrawerContent();
+                const drawer = document.getElementById('mobile-drawer');
+                const overlay = document.getElementById('drawer-overlay');
+                if (drawer) drawer.classList.add('open');
+                if (overlay) overlay.classList.add('open');
+                document.body.style.overflow = 'hidden';
+            } catch (e) {
+                console.error('[DRAWER] Error:', e);
+            }
+        };
+
+        window.closeMobileDrawer = function() {
+            const drawer = document.getElementById('mobile-drawer');
+            const overlay = document.getElementById('drawer-overlay');
+            if (drawer) drawer.classList.remove('open');
+            if (overlay) overlay.classList.remove('open');
+            document.body.style.overflow = '';
+        };
+
+        window.renderDrawerContent = async function() {
+            const container = document.getElementById('drawer-content');
+            if (!container) return;
+
+            const navLinks = [
+                { href: '#home',         icon: 'fa-house',        label: 'Home' },
+                { href: '#destinations', icon: 'fa-globe',        label: 'Destinations' },
+                { href: '#missions',     icon: 'fa-rocket',       label: 'Missions' },
+                { href: '#pricing',      icon: 'fa-tag',          label: 'Pricing' },
+                { href: '#booking',      icon: 'fa-calendar-check', label: 'Book Now' },
+            ];
+
+            const navHTML = `
+                <p class="drawer-section-label">Navigation</p>
+                ${navLinks.map(l => `
+                    <a href="${l.href}" class="drawer-nav-link" data-drawer="close">
+                        <i class="fas ${l.icon}"></i> ${l.label}
+                    </a>`).join('')}
+            `;
+
+            if (currentUser) {
+                let bookedHTML = '<p style="color:var(--text-secondary);font-size:13px;padding:0 20px;">No missions booked yet.</p>';
+                try {
+                    const { data: bookings } = await supabaseClient
+                        .from('bookings')
+                        .select('id, mission_id, cabin_class, created_at, missions(destination, departure)')
+                        .eq('uid', currentUser.id)
+                        .order('created_at', { ascending: false })
+                        .limit(5);
+
+                    if (bookings && bookings.length > 0) {
+                        bookedHTML = bookings.map(b => `
+                            <div class="drawer-booked-item">
+                                <div class="mission-id">${b.mission_id}</div>
+                                <div class="mission-dest">${b.missions?.destination || 'Mission'}</div>
+                                <div class="mission-date">📅 ${b.missions?.departure ? new Date(b.missions.departure).toLocaleDateString() : 'TBD'}</div>
+                                <button class="cancel-btn" data-cancel-booking="${b.id}">Cancel</button>
+                            </div>`).join('');
+                    }
+                } catch(e) { console.warn('Drawer data fail', e); }
+
+                const name = currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0];
+                const avatar = currentUser.user_metadata?.avatar_url || '';
+                const initial = name.charAt(0).toUpperCase();
+
+                container.innerHTML = `
+                    <div class="drawer-user-card">
+                        <div class="drawer-avatar">${avatar ? `<img src="${avatar}" alt="avatar">` : initial}</div>
+                        <div>
+                            <div class="drawer-user-name">${name}</div>
+                            <div class="drawer-user-email">${currentUser.email}</div>
+                        </div>
+                    </div>
+                    ${navHTML}
+                    <div class="drawer-divider"></div>
+                    <p class="drawer-section-label">My Missions</p>
+                    <div class="drawer-booked-section">${bookedHTML}</div>
+                    <div class="drawer-divider"></div>
+                    <button class="drawer-nav-link drawer-logout" data-logout>
+                        <i class="fas fa-right-from-bracket"></i> Sign Out
+                    </button>
+                `;
+            } else {
+                container.innerHTML = `
+                    ${navHTML}
+                    <div class="drawer-divider"></div>
+                    <p class="drawer-section-label">Account</p>
+                    <div class="drawer-auth-btns" style="padding: 0 20px;">
+                        <button class="btn btn-secondary" data-auth="login">Login</button>
+                        <button class="btn btn-primary" data-auth="signup">Sign Up</button>
+                    </div>
+                `;
+            }
+        };
+
+        // --- AUTH & CORE ---
         let MISSIONS_API = [
             { id: 'MSN-001', destination: 'Mars Colony Alpha', price: 120000, seats: 12, duration: 180, departure: 'September 15, 2026', status: 'Active', tagline: 'First permanent human settlement on Mars' },
             { id: 'MSN-002', destination: 'Saturn Ring Hotel', price: 450000, seats: 0, duration: 365, departure: 'November 1, 2026', status: 'Full', tagline: 'Float between the rings in zero gravity' },
@@ -1268,6 +1368,52 @@
                 }
             } catch (e) {
                 console.error('[AUTH] Error switching tab:', e);
+            }
+        };
+
+        // --- Mobile Drawer Global Functions ---
+        window.openMobileDrawer = function() {
+            console.log('[DRAWER] Opening...');
+            try {
+                window.renderDrawerContent();
+                const drawer = document.getElementById('mobile-drawer');
+                const overlay = document.getElementById('drawer-overlay');
+                if (drawer) drawer.classList.add('open');
+                if (overlay) overlay.classList.add('open');
+                document.body.style.overflow = 'hidden';
+            } catch (e) {
+                console.error('[DRAWER] Error opening drawer:', e);
+            }
+        };
+
+        window.closeMobileDrawer = function() {
+            console.log('[DRAWER] Closing...');
+            try {
+                const drawer = document.getElementById('mobile-drawer');
+                const overlay = document.getElementById('drawer-overlay');
+                if (drawer) drawer.classList.remove('open');
+                if (overlay) overlay.classList.remove('open');
+                document.body.style.overflow = '';
+            } catch (e) {
+                console.error('[DRAWER] Error closing drawer:', e);
+            }
+        };
+
+        window.signInWithGoogle = async function() {
+            try {
+                if (!supabaseClient) {
+                   alert('Supabase is still initializing. Please wait a moment.');
+                   return;
+                }
+                const { error } = await supabaseClient.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: {
+                        redirectTo: window.location.origin
+                    }
+                });
+                if (error) throw error;
+            } catch (e) {
+                alert('Google Sign-In Error: ' + e.message);
             }
         };
 
@@ -1601,123 +1747,6 @@
         }
 
         // --- Mobile Drawer ---
-        function openMobileDrawer() {
-            renderDrawerContent();
-            document.getElementById('mobile-drawer').classList.add('open');
-            document.getElementById('drawer-overlay').classList.add('open');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeMobileDrawer() {
-            document.getElementById('mobile-drawer').classList.remove('open');
-            document.getElementById('drawer-overlay').classList.remove('open');
-            document.body.style.overflow = '';
-        }
-
-        async function renderDrawerContent() {
-            const container = document.getElementById('drawer-content');
-            if (!container) return;
-
-            const navLinks = [
-                { href: '#home',         icon: 'fa-house',        label: 'Home' },
-                { href: '#destinations', icon: 'fa-globe',        label: 'Destinations' },
-                { href: '#missions',     icon: 'fa-rocket',       label: 'Missions' },
-                { href: '#pricing',      icon: 'fa-tag',          label: 'Pricing' },
-                { href: '#booking',      icon: 'fa-calendar-check', label: 'Book Now' },
-            ];
-
-            const navHTML = `
-                <p class="drawer-section-label">Navigation</p>
-                ${navLinks.map(l => `
-                    <a href="${l.href}" class="drawer-nav-link" data-drawer="close">
-                        <i class="fas ${l.icon}"></i> ${l.label}
-                    </a>`).join('')}
-            `;
-
-            if (currentUser) {
-                // Fetch booked missions from Supabase
-                let bookedHTML = '<p style="color:var(--text-secondary);font-size:13px;">No missions booked yet.</p>';
-                try {
-                    const { data: bookings } = await supabaseClient
-                        .from('bookings')
-                        .select('id, mission_id, cabin_class, created_at, missions(destination, departure)')
-                        .eq('uid', currentUser.id)
-                        .order('created_at', { ascending: false })
-                        .limit(5);
-
-                    if (bookings && bookings.length > 0) {
-                        bookedHTML = bookings.map(b => `
-                            <div class="drawer-booked-item">
-                                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                                    <div class="mission-id">${b.mission_id}</div>
-                                </div>
-                                <div class="mission-dest">${b.missions?.destination || 'Mission Package'}</div>
-                                <div class="mission-date">📅 ${b.missions?.departure ? new Date(b.missions.departure).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'}) : 'TBD'} &nbsp;·&nbsp; ${b.cabin_class || ''}</div>
-                                <button class="cancel-btn" data-cancel-booking="${b.id}">Cancel Booking</button>
-                            </div>`).join('');
-                        
-                        // Sync local booked mission IDs
-                        My_Booked_Missions = bookings.map(b => b.mission_id);
-                    }
-                } catch(e) { console.warn('Drawer bookings fetch failed', e); }
-
-                const name = currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || currentUser.email?.split('@')[0] || 'Astronaut';
-                const email = currentUser.email || '';
-                const avatar = currentUser.user_metadata?.avatar_url || currentUser.user_metadata?.picture || '';
-                const initial = name.charAt(0).toUpperCase();
-
-                container.innerHTML = `
-                    <div class="drawer-user-card">
-                        <div class="drawer-avatar">
-                            ${avatar ? `<img src="${avatar}" alt="avatar">` : initial}
-                        </div>
-                        <div>
-                            <div class="drawer-user-name">${name}</div>
-                            <div class="drawer-user-email">${email}</div>
-                        </div>
-                    </div>
-
-                    ${navHTML}
-
-                    <div class="drawer-divider"></div>
-
-                    <p class="drawer-section-label">My Missions</p>
-                    <div class="drawer-booked-section">${bookedHTML}</div>
-
-                    <div class="drawer-divider"></div>
-
-                    <button class="drawer-nav-link drawer-logout" data-logout>
-                        <i class="fas fa-right-from-bracket"></i> Sign Out
-                    </button>
-                `;
-            } else {
-                container.innerHTML = `
-                    ${navHTML}
-
-                    <div class="drawer-divider"></div>
-
-                    <p class="drawer-section-label">Account</p>
-                    <div class="drawer-auth-btns">
-                        <button class="btn btn-secondary" data-auth="login">
-                            <i class="fas fa-right-to-bracket" style="margin-right:8px;"></i>Login
-                        </button>
-                        <button class="btn btn-primary" data-auth="signup">
-                            <i class="fas fa-user-astronaut" style="margin-right:8px;"></i>Sign Up
-                        </button>
-                    </div>
-                `;
-            }
-        }
-
-        async function signInWithGoogle() {
-            const { error } = await supabaseClient.auth.signInWithOAuth({
-                provider: 'google',
-                options: {
-                    redirectTo: window.location.href
-                }
-            });
-            if (error) alert(error.message);
-        }
 
 
         document.querySelector('#auth-form').addEventListener('submit', async (e) => {
