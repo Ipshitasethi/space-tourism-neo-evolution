@@ -866,15 +866,15 @@
             <a href="javascript:void(0)" class="btn btn-primary" data-auth="signup"
                 style="padding: 10px 24px;">Sign Up</a>
         </div>
-        <div class="hamburger" id="hamburger-btn" onclick="openMobileDrawer()"><i class="fas fa-bars"></i></div>
+        <div class="hamburger" id="hamburger-btn" data-drawer="open"><i class="fas fa-bars"></i></div>
     </nav>
 
     <!-- Mobile Drawer Overlay -->
-    <div class="mobile-drawer-overlay" id="drawer-overlay" onclick="closeMobileDrawer()"></div>
+    <div class="mobile-drawer-overlay" id="drawer-overlay" data-drawer="close"></div>
 
     <!-- Mobile Drawer -->
     <div class="mobile-drawer" id="mobile-drawer">
-        <button class="drawer-close" onclick="closeMobileDrawer()"><i class="fas fa-times"></i></button>
+        <button class="drawer-close" data-drawer="close"><i class="fas fa-times"></i></button>
         <div class="drawer-logo">NEO-EVO</div>
         <div id="drawer-content"><!-- Populated by JS --></div>
     </div>
@@ -1057,7 +1057,7 @@
             </div>
             <div style="margin-top: 40px; display: flex; gap: 16px;">
                 <button class="btn btn-primary" id="modal-book-btn" style="flex: 1;">Book This Mission</button>
-                <button class="btn btn-secondary" onclick="closeMissionModal()">Close</button>
+                <button class="btn btn-secondary" data-modal="close-mission">Close</button>
             </div>
         </div>
     </div>
@@ -1066,9 +1066,9 @@
     <div class="modal-overlay" id="auth-modal">
         <div class="modal-content" style="max-width: 440px;">
             <div style="display: flex; gap: 24px; margin-bottom: 32px; border-bottom: 1px solid var(--divider);">
-                <button class="nav-link active" id="tab-login" onclick="switchAuthTab('login')"
+                <button class="nav-link active" id="tab-login" data-auth-tab="login"
                     style="padding-bottom: 12px; border: none; background: none; cursor: pointer; font-size: 16px;">Login</button>
-                <button class="nav-link" id="tab-signup" onclick="switchAuthTab('signup')"
+                <button class="nav-link" id="tab-signup" data-auth-tab="signup"
                     style="padding-bottom: 12px; border: none; background: none; cursor: pointer; font-size: 16px;">Sign
                     Up</button>
             </div>
@@ -1105,13 +1105,13 @@
 
                     <button type="button" class="btn btn-secondary"
                         style="width: 100%; display: flex; gap: 10px; align-items: center; justify-content: center;"
-                        onclick="signInWithGoogle()">
+                        data-auth="google">
                         <i class="fab fa-google"></i> Sign in with Google
                     </button>
                 </form>
             </div>
 
-            <button class="btn btn-secondary" onclick="closeAuthModal()"
+            <button class="btn btn-secondary" data-modal="close-auth"
                 style="width: 100%; margin-top: 12px; border: none; font-size: 13px;">Cancel</button>
         </div>
     </div>
@@ -1133,7 +1133,7 @@
             <h3>Mission Confirmed</h3>
             <div class="modal-details" id="modal-details"></div>
             <p style="font-style: italic; color: var(--text-secondary); margin-bottom: 32px;">Your journey begins.</p>
-            <button class="btn btn-secondary" onclick="closeModal()">Close Console</button>
+            <button class="btn btn-secondary" data-modal="close-success">Close Console</button>
         </div>
     </div>
 
@@ -1271,22 +1271,64 @@
             }
         };
 
-        // --- Event Delegation for Auth ---
+        // --- Event Delegation for UI Interactions ---
         document.addEventListener('click', (e) => {
+            // 1. Auth Type (Login, Signup, Google)
             const authBtn = e.target.closest('[data-auth]');
             if (authBtn) {
                 const mode = authBtn.getAttribute('data-auth');
-                if (mode === 'login' || mode === 'signup') {
+                if (mode === 'google') {
+                    e.preventDefault();
+                    window.signInWithGoogle();
+                } else if (mode === 'login' || mode === 'signup') {
                     e.preventDefault();
                     window.openAuthModal(mode);
                 }
             }
 
-            // Also handle logout via delegation
+            // 2. Auth Tabs
+            const authTab = e.target.closest('[data-auth-tab]');
+            if (authTab) {
+                const mode = authTab.getAttribute('data-auth-tab');
+                window.switchAuthTab(mode);
+            }
+
+            // 3. Logout
             const logoutBtn = e.target.closest('[data-logout]');
             if (logoutBtn) {
                 e.preventDefault();
                 window.handleLogout();
+            }
+
+            // 4. Mobile Drawer
+            const drawerBtn = e.target.closest('[data-drawer]');
+            if (drawerBtn) {
+                const action = drawerBtn.getAttribute('data-drawer');
+                if (action === 'open') {
+                    window.openMobileDrawer();
+                } else if (action === 'close') {
+                    window.closeMobileDrawer();
+                }
+            }
+
+            // 5. Modal Closures
+            const modalBtn = e.target.closest('[data-modal]');
+            if (modalBtn) {
+                const action = modalBtn.getAttribute('data-modal');
+                if (action === 'close-auth') {
+                    window.closeAuthModal();
+                } else if (action === 'close-success') {
+                    if (window.closeModal) window.closeModal(); // Current mission success modal
+                } else if (action === 'close-mission') {
+                    if (window.closeMissionModal) window.closeMissionModal();
+                }
+            }
+
+            // 6. Mission Cancellation (Mobile Drawer)
+            const cancelBtn = e.target.closest('[data-cancel-booking]');
+            if (cancelBtn) {
+                const bid = cancelBtn.getAttribute('data-cancel-booking');
+                window.cancelMission(bid);
             }
         });
 
@@ -1587,7 +1629,7 @@
             const navHTML = `
                 <p class="drawer-section-label">Navigation</p>
                 ${navLinks.map(l => `
-                    <a href="${l.href}" class="drawer-nav-link" onclick="closeMobileDrawer()">
+                    <a href="${l.href}" class="drawer-nav-link" data-drawer="close">
                         <i class="fas ${l.icon}"></i> ${l.label}
                     </a>`).join('')}
             `;
@@ -1611,7 +1653,7 @@
                                 </div>
                                 <div class="mission-dest">${b.missions?.destination || 'Mission Package'}</div>
                                 <div class="mission-date">📅 ${b.missions?.departure ? new Date(b.missions.departure).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'}) : 'TBD'} &nbsp;·&nbsp; ${b.cabin_class || ''}</div>
-                                <button class="cancel-btn" onclick="cancelMission('${b.id}')">Cancel Booking</button>
+                                <button class="cancel-btn" data-cancel-booking="${b.id}">Cancel Booking</button>
                             </div>`).join('');
                         
                         // Sync local booked mission IDs
@@ -1644,7 +1686,7 @@
 
                     <div class="drawer-divider"></div>
 
-                    <button class="drawer-nav-link drawer-logout" onclick="handleLogout()">
+                    <button class="drawer-nav-link drawer-logout" data-logout>
                         <i class="fas fa-right-from-bracket"></i> Sign Out
                     </button>
                 `;
