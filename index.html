@@ -1170,16 +1170,17 @@
 
     <!-- JS Logic -->
     <script>
-        // --- Supabase Config (must be first) ---
-        const SUPABASE_URL = 'https://qooefomekoqgsyoqlffp.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFvb2Vmb21la29xZ3N5b3FsZmZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3MjE4OTksImV4cCI6MjA5MDI5Nzg5OX0.31jIkLpTZJ6bKBBSeh2wkGRI9BdpJNZ-gKpTVQ7UVDE';
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        let MISSIONS_API = [];
+        // --- Supabase Config (Dynamic) ---
+        let supabaseClient = null;
+        let MISSIONS_API = [
+            { id: 'MSN-001', destination: 'Mars Colony Alpha', price: 120000, seats: 12, duration: 180, departure: 'September 15, 2026', status: 'Active', tagline: 'First permanent human settlement on Mars' },
+            { id: 'MSN-002', destination: 'Saturn Ring Hotel', price: 450000, seats: 0, duration: 365, departure: 'November 1, 2026', status: 'Full', tagline: 'Float between the rings in zero gravity' },
+            { id: 'MSN-003', destination: 'Europa Station', price: 380000, seats: 8, duration: 240, departure: 'December 20, 2026', status: 'Active', tagline: 'Beneath the ice, an ocean awaits' }
+        ];
         let Passenger_Logs = [];
         let My_Booked_Missions = [];
 
-        const API_BASE_URL = '/api'; // Retaining just in case local APIs are still needed for edge functions
+        const API_BASE_URL = '/api';
 
         function formatDeparture(dateStr) {
             if (!dateStr) return 'TBD';
@@ -1211,7 +1212,9 @@
                     return;
                 }
 
-                MISSIONS_API = data.map(m => ({
+                const uniqueData = data.filter((v, i, a) => a.findIndex(t => (t.destination === v.destination)) === i);
+                
+                MISSIONS_API = uniqueData.map(m => ({
                     ...m,
                     price: Number(m.price_usd),
                     seats: m.seats_available,
@@ -1426,17 +1429,7 @@
         }
 
 
-        // Persistent Auth Listener
-        supabaseClient.auth.onAuthStateChange((event, session) => {
-            console.log('Auth event:', event);
-            currentUser = session?.user || null;
-            updateAuthState();
-            renderDrawerContent();
-            if (event === 'SIGNED_IN') {
-                closeAuthModal();
-                closeMobileDrawer();
-            }
-        });
+        // Auth listener moved to initApp for dynamic configuration
 
         async function handleLogout() {
             await supabaseClient.auth.signOut();
@@ -1982,12 +1975,58 @@
         }
 
         // --- Init ---
-        window.addEventListener('DOMContentLoaded', () => {
+        async function initApp() {
+            // 1. Initialize UI - Run immediately to prevent blank screen
             initThree();
             initGSAP();
-            fetchMissions();
-            updateAuthState();
-        });
+
+            try {
+                // 2. Fetch Config from Backend (Dynamic)
+                let config = { 
+                    supabase_url: 'https://qooefomekoqgsyoqlffp.supabase.co', 
+                    supabase_anon_key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFvb2Vmb21la29xZ3N5b3FsZmZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3MjE4OTksImV4cCI6MjA5MDI5Nzg5OX0.31jIkLpTZJ6bKBBSeh2wkGRI9BdpJNZ-gKpTVQ7UVDE'
+                };
+
+                try {
+                   const configRes = await fetch('/api/config');
+                   if (configRes.ok) {
+                       const serverConfig = await configRes.json();
+                       if (serverConfig.supabase_url && serverConfig.supabase_anon_key) {
+                           config = serverConfig;
+                           console.log('Using Server Configuration');
+                       }
+                   }
+                } catch(e) {
+                   console.log('Falling back to default configuration');
+                }
+
+                // 3. Initialize Client
+                supabaseClient = supabase.createClient(config.supabase_url, config.supabase_anon_key);
+                console.log('Supabase Initialized');
+
+                // 4. Start Data Fetch
+                await fetchMissions();
+                await updateAuthState();
+
+                // Setup Auth Listener after client is ready
+                supabaseClient.auth.onAuthStateChange((event, session) => {
+                    currentUser = session?.user || null;
+                    updateAuthState();
+                    renderDrawerContent();
+                    if (event === 'SIGNED_IN') {
+                        closeAuthModal();
+                        closeMobileDrawer();
+                    }
+                });
+
+            } catch (err) {
+                console.error('Initialization Failed:', err);
+                // Still show missions if they are partially loaded or dummy data exists
+                if (MISSIONS_API.length === 0) renderEmptyState('HQ Uplink Weak: Showing last cached mission logs.');
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', initApp);
     </script>
 </body>
 

@@ -59,6 +59,14 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Config Endpoint for Frontend
+app.get('/api/config', (req, res) => {
+    res.status(200).json({
+      supabase_url: process.env.SUPABASE_URL,
+      supabase_anon_key: process.env.SUPABASE_ANON_KEY
+    });
+});
+
 // Catch-all for SPA: serve index.html for any non-API route
 app.get(/^(?!\/api).*/, (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'index.html'));
