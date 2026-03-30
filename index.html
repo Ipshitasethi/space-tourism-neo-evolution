@@ -1,0 +1,1994 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neo-Evolution: The AI Frontier | Space Tourism</title>
+
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@300;400;700&family=DM+Sans:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- CDNs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollToPlugin.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        :root {
+            /* Color Palette */
+            --bg: #050A14;
+            --surface: #0D1525;
+            --elevated: #111D35;
+            --divider: rgba(255, 255, 255, 0.07);
+            --text-primary: #E8F0FF;
+            --text-secondary: #7A8BAD;
+            --accent-blue: #00D4FF;
+            --accent-purple: #7B2FBE;
+            --accent-glow: rgba(0, 212, 255, 0.15);
+
+            /* Status Colors */
+            --status-active-bg: rgba(0, 212, 255, 0.12);
+            --status-active-text: #00D4FF;
+            --status-full-bg: rgba(239, 68, 68, 0.12);
+            --status-full-text: #F87171;
+            --status-upcoming-bg: rgba(123, 47, 190, 0.15);
+            --status-upcoming-text: #C084FC;
+
+            /* Effects */
+            --easing: cubic-bezier(0.16, 1, 0.3, 1);
+            --nebula: radial-gradient(ellipse at top-right, rgba(123, 47, 190, 0.18) 0%, transparent 60%),
+                radial-gradient(ellipse at bottom-left, rgba(0, 212, 255, 0.10) 0%, transparent 60%);
+        }
+
+        /* --- Global Reset & Typography --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-primary);
+            font-family: 'DM Sans', sans-serif;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        .price-display {
+            font-family: 'Playfair Display', serif;
+            font-weight: 300;
+            line-height: 1.1;
+        }
+
+        .eyebrow {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--accent-blue);
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .section-padding {
+            padding: 140px 8%;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* --- Components --- */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px 32px;
+            border-radius: 999px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s var(--easing);
+            text-decoration: none;
+            border: none;
+            outline: none;
+        }
+
+        .btn-primary {
+            background: var(--accent-blue);
+            color: var(--bg);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 0 24px rgba(0, 212, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid rgba(0, 212, 255, 0.35);
+            color: var(--accent-blue);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(0, 212, 255, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .glass-card {
+            background: var(--surface);
+            border: 1px solid rgba(0, 212, 255, 0.12);
+            border-radius: 16px;
+            padding: 32px;
+            transition: all 0.3s var(--easing);
+        }
+
+        .glass-card:hover {
+            border-color: rgba(0, 212, 255, 0.4);
+            background: var(--elevated);
+            box-shadow: 0 0 32px rgba(0, 212, 255, 0.08);
+            transform: translateY(-4px);
+        }
+
+        /* --- Navbar --- */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            padding: 24px 8%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.4s var(--easing);
+            background: transparent;
+        }
+
+        nav.scrolled {
+            background: rgba(5, 10, 20, 0.7);
+            backdrop-filter: blur(20px);
+            padding: 16px 8%;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .nav-logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 24px;
+            font-weight: 400;
+            color: var(--accent-blue);
+            letter-spacing: 0.15em;
+            text-decoration: none;
+        }
+
+        .nav-center {
+            display: flex;
+            gap: 40px;
+        }
+
+        .nav-link {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            text-transform: capitalize;
+            transition: color 0.3s var(--easing);
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            color: var(--text-primary);
+        }
+
+        #auth-modal .nav-link {
+            border-bottom: 2px solid transparent !important;
+            transition: all 0.3s ease;
+        }
+
+        #auth-modal .nav-link.active {
+            border-bottom: 2px solid var(--accent-blue) !important;
+            color: var(--accent-blue) !important;
+        }
+
+        .nav-right {
+            display: flex;
+            gap: 16px;
+        }
+
+        .hamburger {
+            display: none;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        /* --- Hero Section --- */
+        #home {
+            height: 100vh;
+            display: flex;
+            background: var(--bg);
+            position: relative;
+            overflow: hidden;
+            z-index: 5;
+        }
+
+        .hero-left {
+            width: 45%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding-left: 8%;
+            z-index: 10;
+        }
+
+        .hero-left h1 {
+            font-size: 72px;
+            margin-bottom: 24px;
+            max-width: 500px;
+        }
+
+        .hero-left p {
+            font-size: 18px;
+            color: var(--text-secondary);
+            margin-bottom: 40px;
+            max-width: 440px;
+            line-height: 1.7;
+        }
+
+        .hero-right {
+            width: 55%;
+            position: relative;
+        }
+
+        #hero-canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        /* --- Destinations Section --- */
+        #destinations {
+            background: var(--bg);
+            position: relative;
+        }
+
+        #destinations::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--nebula);
+            pointer-events: none;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 80px;
+        }
+
+        .section-header h2 {
+            font-size: 52px;
+            margin-bottom: 16px;
+        }
+
+        .section-header p {
+            color: var(--text-secondary);
+            font-size: 18px;
+        }
+
+        .dest-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+
+        .planet-view {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin-bottom: 24px;
+            perspective: 1000px;
+            animation: rotateY 8s linear infinite;
+        }
+
+        @keyframes rotateY {
+            from {
+                transform: rotateY(0deg);
+            }
+
+            to {
+                transform: rotateY(360deg);
+            }
+        }
+
+        .dest-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid var(--divider);
+        }
+
+        .explore-link {
+            color: var(--accent-blue);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* --- Status Pills --- */
+        .status-pill {
+            padding: 4px 12px;
+            border-radius: 99px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .active {
+            background: var(--status-active-bg);
+            color: var(--status-active-text);
+        }
+
+        .full {
+            background: var(--status-full-bg);
+            color: var(--status-full-text);
+        }
+
+        .upcoming {
+            background: var(--status-upcoming-bg);
+            color: var(--status-upcoming-text);
+        }
+
+        /* --- Table Styling --- */
+        #missions {
+            background: #080F1E;
+        }
+
+        .table-wrapper {
+            margin-top: 60px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        th {
+            text-align: left;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--text-secondary);
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--divider);
+        }
+
+        td {
+            padding: 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            font-size: 15px;
+            color: var(--text-primary);
+        }
+
+        tr:hover td {
+            background: var(--elevated);
+        }
+
+        /* --- Pricing Section --- */
+        #pricing {
+            background: var(--bg);
+            position: relative;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .price-card.highlight {
+            border-color: var(--accent-blue);
+            position: relative;
+        }
+
+        .popular-badge {
+            position: absolute;
+            top: -14px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent-blue);
+            color: var(--bg);
+            padding: 4px 16px;
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: 99px;
+        }
+
+        .price-display {
+            font-size: 52px;
+            margin: 24px 0;
+            color: var(--text-primary);
+        }
+
+        .price-display span {
+            font-size: 18px;
+            color: var(--text-secondary);
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .feature-list {
+            list-style: none;
+            margin-bottom: 40px;
+        }
+
+        .feature-item {
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 15px;
+            color: var(--text-secondary);
+        }
+
+        .feature-item i {
+            color: var(--accent-blue);
+            font-size: 14px;
+        }
+
+        /* --- Booking Section --- */
+        #booking {
+            background: var(--surface);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nebula-blob {
+            position: absolute;
+            top: -20%;
+            right: -10%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(123, 47, 190, 0.15) 0%, transparent 70%);
+            animation: drift 60s infinite linear;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        @keyframes drift {
+            0% {
+                transform: translate(0, 0);
+            }
+
+            50% {
+                transform: translate(-100px, 50px);
+            }
+
+            100% {
+                transform: translate(0, 0);
+            }
+        }
+
+        .booking-card {
+            max-width: 640px;
+            margin: 0 auto;
+            background: var(--elevated);
+            border: 1px solid rgba(0, 212, 255, 0.15);
+            border-radius: 20px;
+            padding: 48px;
+            position: relative;
+            z-index: 5;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-secondary);
+        }
+
+        input,
+        select,
+        textarea {
+            background: var(--surface);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 14px 16px;
+            color: var(--text-primary);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15px;
+            transition: all 0.3s var(--easing);
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.12);
+        }
+
+        .error-message {
+            color: #F87171;
+            font-size: 12px;
+            margin-top: 4px;
+            display: none;
+        }
+
+        /* --- Modal --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 10, 20, 0.85);
+            backdrop-filter: blur(12px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .modal-content {
+            background: var(--surface);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 20px;
+            padding: 48px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 0 80px rgba(0, 212, 255, 0.1);
+        }
+
+        .success-checkmark {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 32px;
+        }
+
+        .modal-content h3 {
+            font-size: 32px;
+            margin-bottom: 16px;
+        }
+
+        .modal-details {
+            margin: 24px 0;
+            color: var(--text-secondary);
+            font-size: 15px;
+            text-align: left;
+            line-height: 2;
+        }
+
+        /* --- Footer --- */
+        footer {
+            background: var(--bg);
+            padding: 80px 8% 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .footer-top {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 60px;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .social-link {
+            color: var(--text-secondary);
+            font-size: 20px;
+            transition: color 0.3s var(--easing);
+        }
+
+        .social-link:hover {
+            color: var(--accent-blue);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-secondary);
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            padding-top: 40px;
+        }
+
+        /* --- Scrollbar --- */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--surface);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 212, 255, 0.4);
+            border-radius: 2px;
+        }
+
+        /* --- Responsive --- */
+        @media (max-width: 1199px) {
+
+            .dest-grid,
+            .pricing-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .hero-left h1 {
+                font-size: 52px;
+            }
+        }
+
+        /* --- Mobile Drawer (global, always fixed) --- */
+        .mobile-drawer-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(5, 10, 20, 0.75);
+            backdrop-filter: blur(8px);
+            z-index: 1500;
+        }
+        .mobile-drawer-overlay.open { display: block; }
+
+        .mobile-drawer {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: min(320px, 88vw);
+            height: 100%;
+            background: var(--surface);
+            border-left: 1px solid rgba(0,212,255,0.18);
+            box-shadow: -20px 0 60px rgba(0,0,0,0.5);
+            z-index: 1600;
+            display: flex;
+            flex-direction: column;
+            padding: 28px 24px;
+            transition: right 0.38s cubic-bezier(0.16,1,0.3,1);
+            overflow-y: auto;
+        }
+        .mobile-drawer.open { right: 0; }
+
+        .drawer-logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 20px;
+            color: var(--accent-blue);
+            letter-spacing: 0.15em;
+            margin-bottom: 28px;
+        }
+
+        .drawer-close {
+            position: absolute;
+            top: 24px;
+            right: 22px;
+            background: rgba(255,255,255,0.06);
+            border: none;
+            color: var(--text-secondary);
+            font-size: 16px;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .drawer-close:hover { background: rgba(0,212,255,0.12); color: var(--accent-blue); }
+
+        .drawer-user-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px;
+            background: var(--elevated);
+            border: 1px solid rgba(0,212,255,0.15);
+            border-radius: 14px;
+            margin-bottom: 20px;
+        }
+        .drawer-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 600;
+            color: #fff;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        .drawer-avatar img { width:100%; height:100%; object-fit:cover; }
+        .drawer-user-name { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+        .drawer-user-email { font-size: 11px; color: var(--text-secondary); margin-top: 2px; word-break: break-all; }
+
+        .drawer-section-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--text-secondary);
+            margin: 18px 0 8px 4px;
+        }
+        .drawer-nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .drawer-nav-link:hover {
+            background: rgba(0,212,255,0.08);
+            color: var(--text-primary);
+        }
+        .drawer-nav-link i { width: 18px; text-align: center; color: var(--accent-blue); font-size: 13px; }
+
+        .drawer-booked-section { margin-top: 4px; }
+        .drawer-booked-item {
+            background: rgba(0,212,255,0.04);
+            border: 1px solid rgba(0,212,255,0.1);
+            border-radius: 10px;
+            padding: 11px 13px;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+        .drawer-booked-item .mission-id {
+            font-family: monospace;
+            color: var(--accent-blue);
+            font-size: 10px;
+            margin-bottom: 3px;
+            letter-spacing: 0.05em;
+        }
+        .drawer-booked-item .mission-dest { color: var(--text-primary); font-weight: 500; font-size: 13px; }
+        .drawer-booked-item .mission-date { color: var(--text-secondary); font-size: 11px; margin-top: 3px; }
+        .drawer-booked-item .cancel-btn {
+            margin-top: 8px;
+            font-size: 10px;
+            color: #F87171;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: opacity 0.2s;
+        }
+        .drawer-booked-item .cancel-btn:hover { opacity: 0.8; }
+
+        .drawer-divider {
+            height: 1px;
+            background: var(--divider);
+            margin: 14px 0;
+        }
+        .drawer-auth-btns {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 8px;
+        }
+        .drawer-auth-btns .btn { width: 100%; justify-content: center; }
+
+        .drawer-logout {
+            color: #F87171 !important;
+            margin-top: 4px;
+        }
+        .drawer-logout i { color: #F87171 !important; }
+        .drawer-logout:hover { background: rgba(248,113,113,0.08) !important; }
+
+        @media (max-width: 767px) {
+            .nav-center { display: none; }
+            .nav-right { display: none; }
+            .hamburger { display: block; }
+
+            #home {
+                flex-direction: column;
+                height: auto;
+                padding-top: 100px;
+            }
+            .hero-left, .hero-right { width: 100%; }
+            .hero-left { padding: 40px 8%; }
+            .hero-right { height: 400px; }
+            .dest-grid, .pricing-grid { grid-template-columns: 1fr; }
+            .form-row { grid-template-columns: 1fr; gap: 0; }
+            .section-header h2 { font-size: 32px; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navbar -->
+    <nav id="navbar">
+        <a href="#home" class="nav-logo">NEO-EVO</a>
+        <div class="nav-center">
+            <a href="#home" class="nav-link active">Home</a>
+            <a href="#destinations" class="nav-link">Destinations</a>
+            <a href="#missions" class="nav-link">Missions</a>
+            <a href="#pricing" class="nav-link">Pricing</a>
+            <a href="#booking" class="nav-link">Book Now</a>
+        </div>
+        <div class="nav-right">
+            <a href="javascript:void(0)" class="btn btn-secondary" onclick="openAuthModal('login')"
+                style="padding: 10px 24px;">Login</a>
+            <a href="javascript:void(0)" class="btn btn-primary" onclick="openAuthModal('signup')"
+                style="padding: 10px 24px;">Sign Up</a>
+        </div>
+        <div class="hamburger" id="hamburger-btn" onclick="openMobileDrawer()"><i class="fas fa-bars"></i></div>
+    </nav>
+
+    <!-- Mobile Drawer Overlay -->
+    <div class="mobile-drawer-overlay" id="drawer-overlay" onclick="closeMobileDrawer()"></div>
+
+    <!-- Mobile Drawer -->
+    <div class="mobile-drawer" id="mobile-drawer">
+        <button class="drawer-close" onclick="closeMobileDrawer()"><i class="fas fa-times"></i></button>
+        <div class="drawer-logo">NEO-EVO</div>
+        <div id="drawer-content"><!-- Populated by JS --></div>
+    </div>
+
+
+    <!-- Hero Section -->
+    <section id="home">
+        <div class="hero-left">
+            <span class="eyebrow load-reveal">NEO-EVOLUTION AGENCY</span>
+            <h1 class="load-reveal">Step Into the Next Era of Humanity</h1>
+            <p class="load-reveal">You are an Architect of the Frontier. The stars are no longer a dream.</p>
+            <div class="nav-right load-reveal" style="display: flex;">
+                <a href="#booking" class="btn btn-primary">Begin Your Onboarding</a>
+                <a href="#missions" class="btn btn-secondary">View Missions <i class="fas fa-arrow-right"
+                        style="margin-left: 8px;"></i></a>
+            </div>
+        </div>
+        <div class="hero-right">
+            <canvas id="hero-canvas"></canvas>
+        </div>
+    </section>
+
+    <!-- Destinations Section -->
+    <section id="destinations" class="section-padding">
+        <div class="section-header scroll-reveal">
+            <span class="eyebrow">WHERE WILL YOU GO</span>
+            <h2>Choose Your Destination</h2>
+            <p>Eight worlds. Infinite possibility.</p>
+        </div>
+        <div class="dest-grid" id="dest-grid">
+            <!-- Populated by JS -->
+        </div>
+    </section>
+
+    <!-- Missions Section -->
+    <section id="missions" class="section-padding">
+        <div class="section-header scroll-reveal">
+            <span class="eyebrow">LAUNCH SCHEDULE</span>
+            <h2>Active Missions</h2>
+            <p>Real-time mission availability</p>
+        </div>
+        <div class="table-wrapper scroll-reveal">
+            <table id="missions-table">
+                <thead>
+                    <tr>
+                        <th>MISSION ID</th>
+                        <th>DESTINATION</th>
+                        <th>DEPARTURE</th>
+                        <th>SEATS</th>
+                        <th>STATUS</th>
+                        <th>PRICE</th>
+                    </tr>
+                </thead>
+                <tbody id="missions-body">
+                    <!-- Populated by JS -->
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="section-padding">
+        <div class="nebula-blob"></div>
+        <div class="section-header scroll-reveal">
+            <span class="eyebrow">PASSAGE TIERS</span>
+            <h2>Choose Your Class</h2>
+        </div>
+        <div class="pricing-grid">
+            <!-- Explorer -->
+            <div class="glass-card price-card scroll-reveal">
+                <span class="eyebrow">Tier 01</span>
+                <h3>Explorer</h3>
+                <div class="price-display">$120,000<span></span></div>
+                <ul class="feature-list">
+                    <li class="feature-item"><i class="fas fa-check"></i> Economy cabin</li>
+                    <li class="feature-item"><i class="fas fa-check"></i> Standard oxygen</li>
+                    <li class="feature-item"><i class="fas fa-check"></i> 7–180 day missions</li>
+                    <li class="feature-item"><i class="fas fa-check"></i> Basic neural sync</li>
+                    <li class="feature-item"><i class="fas fa-check"></i> Emergency support</li>
+                </ul>
+                <a href="#booking" class="btn btn-secondary" style="width: 100%;">Select Tier</a>
+            </div>
+            <!-- Pioneer -->
+            <div class="glass-card price-card highlight scroll-reveal">
+                <div class="popular-badge">Most Popular</div>
+                <span class="eyebrow">Tier 02</span>
+                <h3>Pioneer</h3>
+                <div class="price-display">$450,000<span></span></div>
+                <ul class="feature-list">
+                    <li class="feature-item"><i class="fas fa-check"></i> Business cabin</li>
+                    <li class="feature-item"><i class="fas fa-check"></i> Enhanced oxygen reserves</li>
+                    <li class="feature-item"><i class="fas fa-check"></i> All mission types</li>
+                    <li class="feature-item"><i class="fas fa-check"></i> Advanced neural sync</li>
+                    <li class="feature-item"><i class="fas fa-check"></i> Priority boarding</li>
+                    <li class="feature-item"><i class="fas fa-check"></i> Dedicated crew</li>
+                </ul>
+                <a href="#booking" class="btn btn-primary" style="width: 100%;">Select Tier</a>
+            </div>
+            <!-- Architect -->
+            <div class="glass-card price-card scroll-reveal">
+                <span class="eyebrow">Tier 03</span>
+                <h3>Architect</h3>
+                <div class="price-display">$1,200,000<span></span></div>
+                <ul class="feature-list">
+                    <li class="feature-item"><i class="fas fa-check"></i> First class pod</li>
+                    <li class="feature-item"><i class="fas fa-check"></i> Unlimited oxygen</li>
+                    <li class="feature-item"><i class="fas fa-check"></i> Exclusive missions</li>
+                    <li class="feature-item"><i class="fas fa-check"></i> Full neural integration</li>
+                    <li class="feature-item"><i class="fas fa-check"></i> Private shuttle</li>
+                    <li class="feature-item"><i class="fas fa-check"></i> Post-mission recovery</li>
+                </ul>
+                <a href="#booking" class="btn btn-secondary" style="width: 100%;">Select Tier</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Booking Section -->
+    <section id="booking" class="section-padding">
+        <div class="nebula-blob" style="top: 40%; left: -10%;"></div>
+        <div class="booking-card scroll-reveal">
+            <div class="section-header" style="text-align: left; margin-bottom: 40px;">
+                <span class="eyebrow">BEGIN YOUR JOURNEY</span>
+                <h2>Mission Onboarding</h2>
+            </div>
+            <form id="onboarding-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="name" placeholder="John Shepard" required>
+                        <div class="error-message" id="error-name">Please enter your full name</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" id="email" placeholder="john@frontier.io" required>
+                        <div class="error-message" id="error-email">Invalid email format</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Passenger ID <span style="font-size: 10px; color: var(--text-secondary); margin-left: 8px;">(Auto-generated)</span></label>
+                    <input type="text" id="passenger-id" placeholder="PSG-XXXXXX" required readonly style="background-color: rgba(255,255,255,0.05); color: var(--text-secondary); cursor: not-allowed; border: 1px solid var(--divider);">
+                    <div class="error-message" id="error-id">ID must be in PSG-XXXXXX format</div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Destination</label>
+                        <select id="select-dest" required>
+                            <option value="">Select Target</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Active Mission</label>
+                        <select id="select-mission" required disabled>
+                            <option value="">Select Destination First</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Cabin Class</label>
+                    <select id="cabin-class" required>
+                        <option value="economy">Explorer (Economy)</option>
+                        <option value="business">Pioneer (Business)</option>
+                        <option value="first">Architect (First Class)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Special Requirements</label>
+                    <textarea id="requirements" rows="4" placeholder="Dietary, Medical, or Tech needs..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">Confirm
+                    Mission</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Mission Detail Modal -->
+    <div class="modal-overlay" id="mission-modal">
+        <div class="modal-content" style="max-width: 700px; text-align: left;">
+            <div id="mission-detail-content">
+                <!-- Populated by JS -->
+            </div>
+            <div style="margin-top: 40px; display: flex; gap: 16px;">
+                <button class="btn btn-primary" id="modal-book-btn" style="flex: 1;">Book This Mission</button>
+                <button class="btn btn-secondary" onclick="closeMissionModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth Modal -->
+    <div class="modal-overlay" id="auth-modal">
+        <div class="modal-content" style="max-width: 440px;">
+            <div style="display: flex; gap: 24px; margin-bottom: 32px; border-bottom: 1px solid var(--divider);">
+                <button class="nav-link active" id="tab-login" onclick="switchAuthTab('login')"
+                    style="padding-bottom: 12px; border: none; background: none; cursor: pointer; font-size: 16px;">Login</button>
+                <button class="nav-link" id="tab-signup" onclick="switchAuthTab('signup')"
+                    style="padding-bottom: 12px; border: none; background: none; cursor: pointer; font-size: 16px;">Sign
+                    Up</button>
+            </div>
+
+            <div id="auth-form-container">
+                <form id="auth-form">
+                    <div id="signup-fields" style="display: none;">
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" id="auth-full-name" placeholder="John Shepard">
+                        </div>
+                        <div class="form-group">
+                            <label>Username</label>
+                            <input type="text" id="auth-username" placeholder="commander_shepard">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" id="auth-email" placeholder="explorer@frontier.io" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="auth-password" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;"
+                        id="auth-submit-btn">Continue to Mission</button>
+
+                    <div
+                        style="margin: 20px 0; display: flex; align-items: center; color: var(--text-secondary); font-size: 12px;">
+                        <span style="flex: 1; height: 1px; background: var(--divider);"></span>
+                        <span style="padding: 0 10px;">OR</span>
+                        <span style="flex: 1; height: 1px; background: var(--divider);"></span>
+                    </div>
+
+                    <button type="button" class="btn btn-secondary"
+                        style="width: 100%; display: flex; gap: 10px; align-items: center; justify-content: center;"
+                        onclick="signInWithGoogle()">
+                        <i class="fab fa-google"></i> Sign in with Google
+                    </button>
+                </form>
+            </div>
+
+            <button class="btn btn-secondary" onclick="closeAuthModal()"
+                style="width: 100%; margin-top: 12px; border: none; font-size: 13px;">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal-content">
+            <div class="success-checkmark">
+                <svg viewBox="0 0 52 52"
+                    style="fill: none; stroke: var(--accent-blue); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;">
+                    <circle cx="26" cy="26" r="25"
+                        style="stroke-dasharray: 157; stroke-dashoffset: 157; animation: drawCircle 0.6s forwards;">
+                    </circle>
+                    <polyline points="16 26 22 32 36 18"
+                        style="stroke-dasharray: 48; stroke-dashoffset: 48; animation: drawCheck 0.4s 0.6s forwards;">
+                    </polyline>
+                </svg>
+            </div>
+            <h3>Mission Confirmed</h3>
+            <div class="modal-details" id="modal-details"></div>
+            <p style="font-style: italic; color: var(--text-secondary); margin-bottom: 32px;">Your journey begins.</p>
+            <button class="btn btn-secondary" onclick="closeModal()">Close Console</button>
+        </div>
+    </div>
+
+    <style>
+        @keyframes drawCircle {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        @keyframes drawCheck {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+    </style>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-top">
+            <div>
+                <a href="#home" class="nav-logo">NEO-EVO</a>
+                <p style="margin-top: 16px; color: var(--text-secondary); font-size: 14px;">Colonizing the Stars, One
+                    Mission at a Time.</p>
+            </div>
+            <div class="social-links">
+                <a href="#" class="social-link"><i class="fab fa-x-twitter"></i></a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            © 2026 Neo-Evolution Agency. All rights reserved.
+        </div>
+    </footer>
+
+    <!-- JS Logic -->
+    <script>
+        // --- Supabase Config (must be first) ---
+        const SUPABASE_URL = 'https://qooefomekoqgsyoqlffp.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFvb2Vmb21la29xZ3N5b3FsZmZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3MjE4OTksImV4cCI6MjA5MDI5Nzg5OX0.31jIkLpTZJ6bKBBSeh2wkGRI9BdpJNZ-gKpTVQ7UVDE';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let MISSIONS_API = [];
+        let Passenger_Logs = [];
+        let My_Booked_Missions = [];
+
+        const API_BASE_URL = '/api'; // Retaining just in case local APIs are still needed for edge functions
+
+        function formatDeparture(dateStr) {
+            if (!dateStr) return 'TBD';
+            try {
+                const d = new Date(dateStr);
+                return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            } catch (e) { return dateStr; }
+        }
+
+        async function fetchMissions() {
+            try {
+                console.log('Fetching missions directly from Supabase...');
+
+                // Query Supabase directly — no backend server needed
+                const { data, error } = await supabaseClient
+                    .from('missions')
+                    .select('*')
+                    .order('departure', { ascending: true });
+
+                if (error) {
+                    throw error;
+                }
+
+                console.log('Missions fetched:', data);
+
+                if (!data || data.length === 0) {
+                    console.warn('No missions found in the database.');
+                    renderEmptyState();
+                    return;
+                }
+
+                MISSIONS_API = data.map(m => ({
+                    ...m,
+                    price: Number(m.price_usd),
+                    seats: m.seats_available,
+                    duration: m.duration_days,
+                    departure: formatDeparture(m.departure),
+                    color: getPlanetColor(m.destination)
+                }));
+
+                renderDestinations();
+                renderMissions();
+                populateSelects();
+
+            } catch (error) {
+                console.error('Error fetching missions:', error);
+                renderEmptyState();
+            }
+        }
+
+        function renderEmptyState() {
+            const grid = document.querySelector('#dest-grid');
+            if (grid) {
+                grid.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+                        <i class="fas fa-satellite" style="font-size: 48px; margin-bottom: 16px; display: block; opacity: 0.4;"></i>
+                        <p style="font-size: 18px;">Unable to load mission data. Please try again later.</p>
+                    </div>`;
+            }
+        }
+
+        function getPlanetColor(dest) {
+            const colors = {
+                "Mars Colony Alpha": "#C1440E",
+                "Saturn Ring Hotel": "#D4A97A",
+                "Europa Station": "#7EBFFF",
+                "Titan Outpost": "#E8C57A",
+                "Kepler-22b Gateway": "#7B5EA7",
+                "Lunar Base Zero": "#C8C8C8",
+                "Venus Cloud City": "#E3BB76",
+                "Mercury Core Mine": "#707070"
+            };
+            return colors[dest] || "#888";
+        }
+
+        // --- Core Functions ---
+        function formatPrice(num) {
+            return '$' + num.toLocaleString();
+        }
+
+        // --- Render UI ---
+        function renderDestinations() {
+            const grid = document.querySelector('#dest-grid');
+            grid.innerHTML = '';
+            MISSIONS_API.forEach(dest => {
+                const isBooked = My_Booked_Missions.includes(dest.id);
+                const card = document.createElement('div');
+                card.className = 'glass-card scroll-reveal';
+                card.style.cursor = 'pointer';
+                card.setAttribute('data-id', dest.id);
+
+                card.innerHTML = `
+                    <div class="planet-view" style="pointer-events: none; background: radial-gradient(circle at 30% 30%, ${dest.color}, #000); box-shadow: 0 0 20px ${dest.color}4D;"></div>
+                    <h3 style="pointer-events: none;">${dest.destination}</h3>
+                    <p style="pointer-events: none; font-size: 14px; color: var(--text-secondary); margin: 8px 0 16px;">${dest.tagline}</p>
+                    <div class="dest-footer" style="pointer-events: none;">
+                        <span style="font-size: 12px; color: var(--text-secondary);">${dest.duration} Days</span>
+                        <span class="status-pill ${dest.difficulty.toLowerCase()}">${dest.difficulty}</span>
+                        ${isBooked ?
+                        '<span class="status-pill active" style="background: rgba(0,212,255,0.2); border: 1px solid var(--accent-blue);">RESERVED</span>' :
+                        '<span class="explore-link">Explore →</span>'
+                    }
+                    </div>
+                `;
+
+                // Use a single click handler for the whole card
+                card.onclick = (e) => {
+                    const id = card.getAttribute('data-id');
+                    openMissionModal(id);
+                };
+
+                grid.appendChild(card);
+            });
+        }
+
+        function openMissionModal(id) {
+            const mission = MISSIONS_API.find(m => m.id === id);
+            if (!mission) return; // Defensive check
+
+            const isBooked = My_Booked_Missions.includes(id);
+            const content = document.querySelector('#mission-detail-content');
+
+            content.innerHTML = `
+                <div style="display: flex; gap: 32px; align-items: flex-start; margin-bottom: 24px;">
+                    <div class="planet-view" style="width: 120px; height: 120px; flex-shrink: 0; margin: 0; background: radial-gradient(circle at 30% 30%, ${mission.color}, #000); box-shadow: 0 0 30px ${mission.color}66;"></div>
+                    <div>
+                        <span class="eyebrow">${mission.id}</span>
+                        <h2 style="font-size: 42px; margin-bottom: 8px;">${mission.destination}</h2>
+                        <p style="color: var(--text-secondary); font-size: 18px;">${mission.tagline}</p>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; border-top: 1px solid var(--divider); padding-top: 24px;">
+                    <div>
+                        <p style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase;">Departure</p>
+                        <p style="font-size: 18px; margin-bottom: 16px;">${mission.departure}</p>
+                        <p style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase;">Duration</p>
+                        <p style="font-size: 18px;">${mission.duration} Earth Days</p>
+                    </div>
+                    <div>
+                        <p style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase;">Difficulty</p>
+                        <p style="font-size: 18px; margin-bottom: 16px;">${mission.difficulty}</p>
+                        <p style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase;">Ticket Price</p>
+                        <p style="font-size: 24px; color: var(--accent-blue); font-family: 'Playfair Display';">${formatPrice(mission.price)}</p>
+                    </div>
+                </div>
+                <div style="margin-top: 24px; padding: 16px; background: rgba(255,255,255,0.03); border-radius: 12px;">
+                    <p style="font-size: 14px; color: var(--text-secondary);">
+                        <i class="fas fa-info-circle" style="margin-right: 8px;"></i>
+                        Launch Window is currently <strong>${mission.status.toUpperCase()}</strong>. ${mission.seats} seats remaining.
+                    </p>
+                </div>
+            `;
+
+            const bookBtn = document.querySelector('#modal-book-btn');
+            if (isBooked) {
+                bookBtn.textContent = 'Already Reserved';
+                bookBtn.disabled = true;
+                bookBtn.style.opacity = '0.5';
+                bookBtn.style.cursor = 'not-allowed';
+                bookBtn.onclick = null;
+            } else if (mission.status === 'Full') {
+                bookBtn.textContent = 'Mission Full';
+                bookBtn.disabled = true;
+                bookBtn.style.opacity = '0.5';
+                bookBtn.onclick = null;
+            } else {
+                bookBtn.textContent = 'Book This Mission';
+                bookBtn.disabled = false;
+                bookBtn.style.opacity = '1';
+                bookBtn.style.cursor = 'pointer';
+                bookBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    closeMissionModal();
+                    scrollToBooking(mission.destination, mission.id);
+                };
+            }
+
+            document.querySelector('#mission-modal').style.display = 'flex';
+            gsap.from('#mission-modal .modal-content', { y: 20, opacity: 0, duration: 0.4, ease: "power4.out" });
+        }
+
+        // (Supabase client initialized at top of script)
+
+        let currentUser = null;
+
+        async function updateAuthState() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            currentUser = session?.user || null;
+
+            const authRightElements = document.querySelectorAll('.nav-right');
+            authRightElements.forEach(authRight => {
+                if (currentUser) {
+                    const name = currentUser.user_metadata?.full_name || currentUser.user_metadata?.username || currentUser.email;
+                    
+                    if (authRight.parentElement.id === 'navbar') {
+                        authRight.innerHTML = `
+                            <div class="user-hamburger" onclick="openMobileDrawer()" style="cursor: pointer; font-size: 20px; color: var(--text-primary); display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; background: rgba(0,212,255,0.05); border: 1px solid rgba(0,212,255,0.15); transition: all 0.3s;">
+                                <i class="fas fa-bars"></i>
+                            </div>
+                        `;
+                    } else {
+                        authRight.innerHTML = `
+                            <span style="color: var(--text-secondary); font-size: 14px; align-self: center;">Welcome, ${name}</span>
+                            <a href="javascript:void(0)" class="btn btn-secondary" onclick="handleLogout()" style="padding: 10px 24px;">Logout</a>
+                        `;
+                    }
+
+                    // Update Hero Buttons if they exist in this nav-right
+                    const heroContainer = authRight.closest('.hero-left');
+                    if (heroContainer) {
+                        authRight.innerHTML = `
+                             <span style="color: var(--text-secondary); font-size: 18px; display: block; margin-bottom: 20px;">Ready for departure, ${name}?</span>
+                             <div style="display: flex; gap: 16px;">
+                                <a href="#booking" class="btn btn-primary">Book New Mission</a>
+                                <a href="#missions" class="btn btn-secondary">Upcoming Launches</a>
+                             </div>
+                        `;
+                    }
+                } else {
+                    if (authRight.parentElement.classList.contains('hero-left')) {
+                        authRight.innerHTML = `
+                            <a href="#booking" class="btn btn-primary">Begin Your Onboarding</a>
+                            <a href="#missions" class="btn btn-secondary">View Missions <i class="fas fa-arrow-right" style="margin-left: 8px;"></i></a>
+                        `;
+                    } else {
+                        authRight.innerHTML = `
+                            <a href="javascript:void(0)" class="btn btn-secondary" onclick="openAuthModal('login')" style="padding: 10px 24px;">Login</a>
+                            <a href="javascript:void(0)" class="btn btn-primary" onclick="openAuthModal('signup')" style="padding: 10px 24px;">Sign Up</a>
+                        `;
+                    }
+                }
+            });
+
+            // Autofill Booking Form
+            const nameInput = document.getElementById('name');
+            const emailInput = document.getElementById('email');
+            if (currentUser) {
+                if (nameInput) nameInput.value = currentUser.user_metadata?.full_name || currentUser.user_metadata?.username || currentUser.user_metadata?.name || '';
+                if (emailInput) emailInput.value = currentUser.email || '';
+            } else {
+                if (nameInput) nameInput.value = '';
+                if (emailInput) emailInput.value = '';
+            }
+        }
+
+
+        // Persistent Auth Listener
+        supabaseClient.auth.onAuthStateChange((event, session) => {
+            console.log('Auth event:', event);
+            currentUser = session?.user || null;
+            updateAuthState();
+            renderDrawerContent();
+            if (event === 'SIGNED_IN') {
+                closeAuthModal();
+                closeMobileDrawer();
+            }
+        });
+
+        async function handleLogout() {
+            await supabaseClient.auth.signOut();
+            updateAuthState();
+            renderDrawerContent();
+            closeMobileDrawer();
+        }
+
+        async function cancelMission(bookingId) {
+            if (!confirm('Abort this mission? This action cannot be undone.')) return;
+            
+            try {
+                const { error } = await supabaseClient
+                    .from('bookings')
+                    .delete()
+                    .eq('id', bookingId);
+                
+                if (error) throw error;
+                
+                // Refresh local state and UI
+                await fetchMissions();
+                await renderDrawerContent();
+                
+            } catch (error) {
+                alert('Cancellation Failed: ' + error.message);
+            }
+        }
+
+        // --- Mobile Drawer ---
+        function openMobileDrawer() {
+            renderDrawerContent();
+            document.getElementById('mobile-drawer').classList.add('open');
+            document.getElementById('drawer-overlay').classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeMobileDrawer() {
+            document.getElementById('mobile-drawer').classList.remove('open');
+            document.getElementById('drawer-overlay').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        async function renderDrawerContent() {
+            const container = document.getElementById('drawer-content');
+            if (!container) return;
+
+            const navLinks = [
+                { href: '#home',         icon: 'fa-house',        label: 'Home' },
+                { href: '#destinations', icon: 'fa-globe',        label: 'Destinations' },
+                { href: '#missions',     icon: 'fa-rocket',       label: 'Missions' },
+                { href: '#pricing',      icon: 'fa-tag',          label: 'Pricing' },
+                { href: '#booking',      icon: 'fa-calendar-check', label: 'Book Now' },
+            ];
+
+            const navHTML = `
+                <p class="drawer-section-label">Navigation</p>
+                ${navLinks.map(l => `
+                    <a href="${l.href}" class="drawer-nav-link" onclick="closeMobileDrawer()">
+                        <i class="fas ${l.icon}"></i> ${l.label}
+                    </a>`).join('')}
+            `;
+
+            if (currentUser) {
+                // Fetch booked missions from Supabase
+                let bookedHTML = '<p style="color:var(--text-secondary);font-size:13px;">No missions booked yet.</p>';
+                try {
+                    const { data: bookings } = await supabaseClient
+                        .from('bookings')
+                        .select('id, mission_id, cabin_class, created_at, missions(destination, departure)')
+                        .eq('uid', currentUser.id)
+                        .order('created_at', { ascending: false })
+                        .limit(5);
+
+                    if (bookings && bookings.length > 0) {
+                        bookedHTML = bookings.map(b => `
+                            <div class="drawer-booked-item">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                    <div class="mission-id">${b.mission_id}</div>
+                                </div>
+                                <div class="mission-dest">${b.missions?.destination || 'Mission Package'}</div>
+                                <div class="mission-date">📅 ${b.missions?.departure ? new Date(b.missions.departure).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'}) : 'TBD'} &nbsp;·&nbsp; ${b.cabin_class || ''}</div>
+                                <button class="cancel-btn" onclick="cancelMission('${b.id}')">Cancel Booking</button>
+                            </div>`).join('');
+                        
+                        // Sync local booked mission IDs
+                        My_Booked_Missions = bookings.map(b => b.mission_id);
+                    }
+                } catch(e) { console.warn('Drawer bookings fetch failed', e); }
+
+                const name = currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || currentUser.email?.split('@')[0] || 'Astronaut';
+                const email = currentUser.email || '';
+                const avatar = currentUser.user_metadata?.avatar_url || currentUser.user_metadata?.picture || '';
+                const initial = name.charAt(0).toUpperCase();
+
+                container.innerHTML = `
+                    <div class="drawer-user-card">
+                        <div class="drawer-avatar">
+                            ${avatar ? `<img src="${avatar}" alt="avatar">` : initial}
+                        </div>
+                        <div>
+                            <div class="drawer-user-name">${name}</div>
+                            <div class="drawer-user-email">${email}</div>
+                        </div>
+                    </div>
+
+                    ${navHTML}
+
+                    <div class="drawer-divider"></div>
+
+                    <p class="drawer-section-label">My Missions</p>
+                    <div class="drawer-booked-section">${bookedHTML}</div>
+
+                    <div class="drawer-divider"></div>
+
+                    <button class="drawer-nav-link drawer-logout" onclick="handleLogout()">
+                        <i class="fas fa-right-from-bracket"></i> Sign Out
+                    </button>
+                `;
+            } else {
+                container.innerHTML = `
+                    ${navHTML}
+
+                    <div class="drawer-divider"></div>
+
+                    <p class="drawer-section-label">Account</p>
+                    <div class="drawer-auth-btns">
+                        <button class="btn btn-secondary" onclick="closeMobileDrawer(); openAuthModal('login')">
+                            <i class="fas fa-right-to-bracket" style="margin-right:8px;"></i>Login
+                        </button>
+                        <button class="btn btn-primary" onclick="closeMobileDrawer(); openAuthModal('signup')">
+                            <i class="fas fa-user-astronaut" style="margin-right:8px;"></i>Sign Up
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        async function signInWithGoogle() {
+            const { error } = await supabaseClient.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: window.location.href
+                }
+            });
+            if (error) alert(error.message);
+        }
+
+        let pendingMission = null;
+        let currentAuthMode = 'login';
+
+        function openAuthModal(mode = 'login', dest = null, mid = null) {
+            pendingMission = { dest, mid };
+            currentAuthMode = mode;
+            switchAuthTab(mode);
+            document.querySelector('#auth-modal').style.display = 'flex';
+            gsap.from('#auth-modal .modal-content', { y: 20, opacity: 0, duration: 0.4, ease: "power4.out" });
+        }
+
+        function closeAuthModal() {
+            const modal = document.querySelector('#auth-modal');
+            gsap.to('#auth-modal .modal-content', {
+                y: 20, opacity: 0, duration: 0.3, onComplete: () => {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+
+        function switchAuthTab(mode) {
+            currentAuthMode = mode;
+            const loginTab = document.querySelector('#tab-login');
+            const signupTab = document.querySelector('#tab-signup');
+            const submitBtn = document.querySelector('#auth-submit-btn');
+            const signupFields = document.querySelector('#signup-fields');
+
+            if (mode === 'login') {
+                loginTab.classList.add('active');
+                signupTab.classList.remove('active');
+                submitBtn.textContent = 'Login & Continue';
+                signupFields.style.display = 'none';
+                document.querySelector('#auth-full-name').required = false;
+                document.querySelector('#auth-username').required = false;
+            } else {
+                signupTab.classList.add('active');
+                loginTab.classList.remove('active');
+                submitBtn.textContent = 'Create Account';
+                signupFields.style.display = 'block';
+                document.querySelector('#auth-full-name').required = true;
+                document.querySelector('#auth-username').required = true;
+            }
+        }
+
+        document.querySelector('#auth-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.querySelector('#auth-email').value;
+            const password = document.querySelector('#auth-password').value;
+
+            let result;
+            if (currentAuthMode === 'signup') {
+                const fullName = document.querySelector('#auth-full-name').value;
+                const username = document.querySelector('#auth-username').value;
+
+                result = await supabaseClient.auth.signUp({
+                    email,
+                    password,
+                    options: {
+                        data: {
+                            full_name: fullName,
+                            username: username
+                        }
+                    }
+                });
+            } else {
+                result = await supabaseClient.auth.signInWithPassword({ email, password });
+            }
+
+            if (result.error) {
+                // Better Error Handling
+                if (result.error.message.includes('already registered')) {
+                    const switchNow = confirm('This email is already registered. Would you like to switch to Login?');
+                    if (switchNow) switchAuthTab('login');
+                } else if (result.error.message.includes('Email not confirmed')) {
+                    alert('Registration pending: Please check your email and click the confirmation link to activate your account.');
+                } else {
+                    alert('Auth Error: ' + result.error.message);
+                }
+                return;
+            }
+
+            // session might take a moment to propagate
+            if (result.data?.user) {
+                closeAuthModal();
+                updateAuthState();
+
+                if (pendingMission && pendingMission.dest) {
+                    scrollToBooking(pendingMission.dest, pendingMission.mid);
+                }
+            }
+        });
+
+        function closeMissionModal() {
+            const modal = document.querySelector('#mission-modal');
+            gsap.to('#mission-modal .modal-content', {
+                y: 20, opacity: 0, duration: 0.3, onComplete: () => {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+
+        function scrollToBooking(dest, missionId) {
+            window.location.hash = 'booking';
+            const destSelect = document.querySelector('#select-dest');
+            const missionSelect = document.querySelector('#select-mission');
+
+            destSelect.value = dest;
+            destSelect.dispatchEvent(new Event('change'));
+            missionSelect.value = missionId;
+
+            gsap.to(window, { duration: 1, scrollTo: "#booking", ease: "power4.out" });
+        }
+
+        function renderMissions() {
+            const tbody = document.querySelector('#missions-body');
+            tbody.innerHTML = '';
+            MISSIONS_API.forEach(m => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td style="font-family: monospace; color: var(--accent-blue);">${m.id}</td>
+                    <td>${m.destination}</td>
+                    <td>${m.departure}</td>
+                    <td>${m.seats}</td>
+                    <td><span class="status-pill ${m.status.toLowerCase()}">${m.status}</span></td>
+                    <td style="font-weight: 500;">${formatPrice(m.price)}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function populateSelects() {
+            const destSelect = document.querySelector('#select-dest');
+            destSelect.innerHTML = '<option value="">Select Target</option>';
+            MISSIONS_API.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m.destination;
+                opt.textContent = m.destination;
+                destSelect.appendChild(opt);
+            });
+        }
+
+        // --- Three.js Hero ---
+        function initThree() {
+            const canvas = document.querySelector('#hero-canvas');
+            const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+            renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(45, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+            camera.position.z = 15;
+
+            // Saturn Planet
+            const planetGeo = new THREE.SphereGeometry(4, 64, 64);
+            const planetMat = new THREE.MeshPhongMaterial({
+                color: 0xD4A97A,
+                shininess: 10
+            });
+            const planet = new THREE.Mesh(planetGeo, planetMat);
+            scene.add(planet);
+
+            // Saturn Rings
+            const ringGeo = new THREE.TorusGeometry(6.5, 0.8, 2, 64);
+            const ringMat = new THREE.MeshBasicMaterial({
+                color: 0xC8A882,
+                transparent: true,
+                opacity: 0.6,
+                side: THREE.DoubleSide
+            });
+            const rings = new THREE.Mesh(ringGeo, ringMat);
+            rings.rotation.x = Math.PI / 2.2;
+            scene.add(rings);
+
+            // Stars
+            const starGeo = new THREE.BufferGeometry();
+            const starPositions = new Float32Array(1500); // 500 stars
+            for (let i = 0; i < 1500; i++) starPositions[i] = (Math.random() - 0.5) * 100;
+            starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+            const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.1 });
+            const stars = new THREE.Points(starGeo, starMat);
+            scene.add(stars);
+
+            // Asteroids
+            const asteroids = [];
+            for (let i = 0; i < 3; i++) {
+                const astGeo = new THREE.IcosahedronGeometry(0.3, 0);
+                const astMat = new THREE.MeshPhongMaterial({ color: 0x444444 });
+                const asteroid = new THREE.Mesh(astGeo, astMat);
+                asteroid.orbitRadius = 8 + (i * 2);
+                asteroid.orbitSpeed = 0.005 / (i + 1);
+                asteroid.angle = Math.random() * Math.PI * 2;
+                scene.add(asteroid);
+                asteroids.push(asteroid);
+            }
+
+            // Light
+            const ambientLight = new THREE.AmbientLight(0x404040, 2);
+            scene.add(ambientLight);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
+            directionalLight.position.set(5, 3, 5);
+            scene.add(directionalLight);
+
+            function animate() {
+                requestAnimationFrame(animate);
+                planet.rotation.y += 0.002;
+                rings.rotation.z += 0.001;
+                stars.rotation.y += 0.0005;
+
+                asteroids.forEach(ast => {
+                    ast.angle += ast.orbitSpeed;
+                    ast.position.x = Math.cos(ast.angle) * ast.orbitRadius;
+                    ast.position.z = Math.sin(ast.angle) * ast.orbitRadius;
+                    ast.rotation.x += 0.02;
+                    ast.rotation.y += 0.02;
+                });
+
+                scene.rotation.y += 0.0005; // Auto-rotation camera effect
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            window.addEventListener('resize', () => {
+                camera.aspect = canvas.clientWidth / canvas.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+            });
+        }
+
+        // --- Booking Logic ---
+        const onboardForm = document.querySelector('#onboarding-form');
+        const destSelect = document.querySelector('#select-dest');
+        const missionSelect = document.querySelector('#select-mission');
+
+        function generatePassengerId() {
+            const randomDigits = Math.floor(100000 + Math.random() * 900000);
+            document.querySelector('#passenger-id').value = `PSG-${randomDigits}`;
+        }
+        
+        // Auto-generate on load
+        generatePassengerId();
+
+        destSelect.addEventListener('change', () => {
+            const dest = destSelect.value;
+            missionSelect.innerHTML = '<option value="">Select Mission</option>';
+            if (dest) {
+                const missions = MISSIONS_API.filter(m => m.destination === dest && m.status !== 'Full');
+                if (missions.length > 0) {
+                    missions.forEach(m => {
+                        const opt = document.createElement('option');
+                        opt.value = m.id;
+                        opt.textContent = `${m.id} | ${m.departure}`;
+                        missionSelect.appendChild(opt);
+                    });
+                    missionSelect.disabled = false;
+                } else {
+                    missionSelect.innerHTML = '<option value="">No Active Missions</option>';
+                    missionSelect.disabled = true;
+                }
+            } else {
+                missionSelect.disabled = true;
+            }
+        });
+
+        onboardForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!currentUser) {
+                openAuthModal('signup', destSelect.value, missionSelect.value);
+                return;
+            }
+
+            // Basic Validation
+            let isValid = true;
+            const email = document.querySelector('#email').value;
+            const passId = document.querySelector('#passenger-id').value;
+
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                document.querySelector('#error-email').style.display = 'block';
+                isValid = false;
+            } else {
+                document.querySelector('#error-email').style.display = 'none';
+            }
+
+            if (!/^PSG-\d{6}$/.test(passId)) {
+                document.querySelector('#error-id').style.display = 'block';
+                isValid = false;
+            } else {
+                document.querySelector('#error-id').style.display = 'none';
+            }
+
+            if (!isValid) return;
+
+            const name = document.querySelector('#name').value;
+            const dest = destSelect.value;
+            const missionId = missionSelect.value;
+            const cabin = document.querySelector('#cabin-class').value;
+
+            try {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                
+                const { data, error } = await supabaseClient
+                    .from('bookings')
+                    .insert([
+                        {
+                            uid: session.user.id,
+                            name: name,
+                            email: email,
+                            mission_id: missionId,
+                            destination: dest,
+                            cabin_class: cabin,
+                            passenger_id: passId,
+                            special_requirements: document.querySelector('#special-requirements')?.value || ''
+                        }
+                    ])
+                    .select();
+
+                if (error) {
+                    throw error;
+                }
+
+                const bookingRecord = {
+                    name: name,
+                    missionId: missionId,
+                    destination: dest,
+                    cabinClass: cabin
+                };
+
+                // Update Local UI State
+                My_Booked_Missions.push(missionId);
+                fetchMissions(); // Refresh mission list (seats)
+                showModal(bookingRecord, MISSIONS_API.find(m => m.id === missionId));
+                onboardForm.reset();
+                missionSelect.disabled = true;
+                generatePassengerId(); // Refresh ID for next booking
+
+            } catch (error) {
+                alert('Mission Aborted: ' + error.message);
+            }
+        });
+
+        function showModal(booking, mission) {
+            const modal = document.querySelector('#modal-overlay');
+            document.querySelector('#modal-details').innerHTML = `
+                <p><strong>Passenger:</strong> ${booking.name}</p>
+                <p><strong>Mission:</strong> ${booking.missionId}</p>
+                <p><strong>Destination:</strong> ${booking.destination}</p>
+                <p><strong>Departure:</strong> ${mission.departure}</p>
+                <p><strong>Class:</strong> ${booking.cabinClass.toUpperCase()}</p>
+            `;
+            modal.style.display = 'flex';
+            gsap.from('.modal-content', { scale: 0.9, opacity: 0, duration: 0.4, ease: "power4.out" });
+        }
+
+        function closeModal() {
+            const modal = document.querySelector('#modal-overlay');
+            gsap.to('.modal-content', {
+                scale: 0.9, opacity: 0, duration: 0.3, onComplete: () => {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+
+        // --- Animations ---
+        function initGSAP() {
+            gsap.registerPlugin(ScrollTrigger);
+
+            // Load Reveal
+            gsap.from('.load-reveal', {
+                y: 30,
+                opacity: 0,
+                duration: 0.8,
+                stagger: 0.1,
+                ease: "power4.out",
+                delay: 0.2
+            });
+
+            // Scroll Reveal
+            gsap.utils.toArray('.scroll-reveal').forEach(elem => {
+                gsap.from(elem, {
+                    scrollTrigger: {
+                        trigger: elem,
+                        start: "top 85%"
+                    },
+                    y: 30,
+                    opacity: 0,
+                    duration: 0.8,
+                    ease: "power4.out"
+                });
+            });
+
+            // Navbar
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 50) document.querySelector('#navbar').classList.add('scrolled');
+                else document.querySelector('#navbar').classList.remove('scrolled');
+            });
+        }
+
+        // --- Init ---
+        window.addEventListener('DOMContentLoaded', () => {
+            initThree();
+            initGSAP();
+            fetchMissions();
+            updateAuthState();
+        });
+    </script>
+</body>
+
+</html>
