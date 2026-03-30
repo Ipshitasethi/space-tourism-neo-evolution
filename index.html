@@ -210,12 +210,23 @@
         }
 
         .hamburger {
-            display: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            background: rgba(0, 212, 255, 0.05);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 50%;
             cursor: pointer;
-            font-size: 24px;
+            font-size: 20px;
             z-index: 3000;
-            padding: 10px;
-            color: var(--text-primary);
+            color: var(--accent-blue);
+            transition: all 0.3s var(--easing);
+        }
+        @media (min-width: 992px) {
+            /* If you only want it on mobile, uncomment the next line */
+            /* .hamburger { display: none; } */
         }
 
         /* --- Hero Section --- */
@@ -831,10 +842,9 @@
         .drawer-logout i { color: #F87171 !important; }
         .drawer-logout:hover { background: rgba(248,113,113,0.08) !important; }
 
-        @media (max-width: 1100px) {
-            .nav-center { display: none; }
-            .nav-right { display: none; }
-            .hamburger { display: block; }
+        @media (max-width: 991px) {
+            .nav-center, .nav-right:not(.mobile-ignore) { display: none; }
+            .hamburger { display: flex; }
 
             #home {
                 flex-direction: column;
@@ -869,7 +879,9 @@
             <a href="javascript:void(0)" class="btn btn-primary" data-auth="signup"
                 style="padding: 10px 24px;">Sign Up</a>
         </div>
-        <div class="hamburger" id="hamburger-btn" data-drawer="open"><i class="fas fa-bars"></i></div>
+        <div class="hamburger" id="hamburger-btn" onclick="window.openMobileDrawer()" data-drawer="open">
+            <i class="fas fa-bars"></i>
+        </div>
     </nav>
 
     <!-- Mobile Drawer Overlay -->
@@ -889,10 +901,9 @@
             <span class="eyebrow load-reveal">NEO-EVOLUTION AGENCY</span>
             <h1 class="load-reveal">Step Into the Next Era of Humanity</h1>
             <p class="load-reveal">You are an Architect of the Frontier. The stars are no longer a dream.</p>
-            <div class="nav-right load-reveal" style="display: flex;">
-                <a href="#booking" class="btn btn-primary">Begin Your Onboarding</a>
-                <a href="#missions" class="btn btn-secondary">View Missions <i class="fas fa-arrow-right"
-                        style="margin-left: 8px;"></i></a>
+            <div class="hero-actions load-reveal" style="display: flex; gap: 16px;">
+                <a href="#booking" class="btn btn-primary" style="background: linear-gradient(135deg, #00D4FF 0%, #7B2FBE 100%); color: white; border: none;">Book New Mission</a>
+                <a href="#missions" class="btn btn-secondary" style="border: 1px solid var(--accent-blue); color: var(--accent-blue);">Upcoming Launches</a>
             </div>
         </div>
         <div class="hero-right">
